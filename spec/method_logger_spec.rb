@@ -1,5 +1,5 @@
 require 'spec_helper'
-require_relative '../lib/challenges/metaprogramming'
+require_relative '../lib/challenges/method_logger'
 
 describe "Integration" do
   describe "with String#size" do
@@ -40,12 +40,28 @@ describe "with B#foo" do
   end
 end
 
-describe ".method_name" do
-  before do
-    ENV.store('COUNT_CALLS_TO', 'String#size')
+describe MethodLogger do
+  describe ".method_name" do
+    before do
+      ENV.store('COUNT_CALLS_TO', 'String#size')
+    end
+
+    it "returns a method and class from the ENV variable" do
+      expect(MethodLogger.method_name).to eq([String, :size])
+    end
   end
 
-  it "returns a method and class from the ENV variable" do
-    expect(Metaprogramming.method_name).to eq([String, :size])
+  describe ".report" do
+    before do
+      MethodLogger.add_call
+      MethodLogger.add_call
+      ENV.store('COUNT_CALLS_TO', 'String#size')
+    end
+
+    let(:expected_output) { "String#size was called 2 times.\n" }
+
+    it "outputs the expected string" do
+      expect { MethodLogger.report }.to output(expected_output).to_stdout
+    end
   end
 end
